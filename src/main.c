@@ -44,6 +44,14 @@ main (void) {
 
             case KEY_RIGHT: break;
 
+            case KEY_UP:
+                t.tv_nsec -= 25000000;
+                break;
+
+            case KEY_DOWN:
+                t.tv_nsec += 25000000;
+                break;
+
             case 'q': goto cleanup;
 
             default:
