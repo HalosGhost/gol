@@ -9,4 +9,6 @@ This is a for-fun implementation of the game of life using ncurses.
 * Runs at full terminal size
 * Randomly seeds the universe with life
 * Restarts the simulation with a new random board on `SIGHUP`
-* Cleanly exits on `SIGINT`
+* Cleanly exits on `SIGINT` or `q`
+* Allows modulation of the pause between ticks
+* Allows pausing the simulation, and frame-by-frame playback once paused
