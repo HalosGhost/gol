@@ -4,10 +4,11 @@ signed
 main (void) {
 
     setlocale(LC_ALL, "");
-    initscr();
+    WINDOW * root = initscr();
     noecho();
     cbreak();
     curs_set(0);
+    nodelay(root, continuous);
 
     cur  = (uint8_t ** )malloc(sizeof(uint8_t *) * ROWS);
     next = (uint8_t ** )malloc(sizeof(uint8_t *) * ROWS);
@@ -31,7 +32,14 @@ main (void) {
     signal(SIGINT, signal_handler);
     signal(SIGHUP, signal_handler);
 
-    for ( struct timespec t = { .tv_nsec = 125000000 }; ; nanosleep(&t, 0) ) {
+    int c = 1;
+    for ( struct timespec t = { .tv_nsec = 125000000 }; (c = getch()); nanosleep(&t, 0) ) {
+        if ( c == ' ' ) {
+            continuous = !continuous;
+            nodelay(root, continuous);
+            c = 1;
+        }
+
         switch ( run_state ) {
             case 1: goto cleanup;
             case 2: goto setup;

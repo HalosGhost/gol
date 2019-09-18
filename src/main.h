@@ -20,6 +20,7 @@ void
 signal_handler (signed);
 
 static uint8_t ** cur, ** next;
+static int continuous = TRUE;
 static volatile sig_atomic_t run_state;
 static volatile sig_atomic_t caught_signum;
 
