@@ -9,6 +9,7 @@ main (void) {
     cbreak();
     curs_set(0);
     nodelay(root, continuous);
+    keypad(root, TRUE);
 
     cur  = (uint8_t ** )malloc(sizeof(uint8_t *) * ROWS);
     next = (uint8_t ** )malloc(sizeof(uint8_t *) * ROWS);
@@ -34,10 +35,23 @@ main (void) {
 
     int c = 1;
     for ( struct timespec t = { .tv_nsec = 125000000 }; (c = getch()); nanosleep(&t, 0) ) {
-        if ( c == ' ' ) {
-            continuous = !continuous;
-            nodelay(root, continuous);
-            c = 1;
+        switch ( c ) {
+            case ' ':
+                continuous = !continuous;
+                nodelay(root, continuous);
+                c = 1;
+                break;
+
+            case KEY_RIGHT: break;
+
+            case 'q': goto cleanup;
+
+            default:
+                if ( continuous ) {
+                    break;
+                } else {
+                    continue;
+                }
         }
 
         switch ( run_state ) {
