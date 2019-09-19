@@ -72,10 +72,8 @@ main (void) {
         evolve(cur, next);
     }
 
-
     cleanup:
         endwin();
-        fputs("Caught interrupt; exiting\n", stderr);
         for ( size_t i = 0; i < ROWS; ++ i ) {
             if ( cur[i]  ) { free(cur[i]);  }
             if ( next[i] ) { free(next[i]); }
