@@ -4,12 +4,12 @@ signed
 main (void) {
 
     setlocale(LC_ALL, "");
-    WINDOW * root = initscr();
+    initscr();
     noecho();
     cbreak();
     curs_set(0);
-    nodelay(root, continuous);
-    keypad(root, TRUE);
+    nodelay(stdscr, continuous);
+    keypad(stdscr, TRUE);
 
     cur  = (uint8_t ** )malloc(sizeof(uint8_t *) * ROWS);
     next = (uint8_t ** )malloc(sizeof(uint8_t *) * ROWS);
@@ -38,7 +38,7 @@ main (void) {
         switch ( c ) {
             case ' ':
                 continuous = !continuous;
-                nodelay(root, continuous);
+                nodelay(stdscr, continuous);
                 c = 1;
                 break;
 
