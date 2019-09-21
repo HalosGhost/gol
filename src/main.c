@@ -57,8 +57,6 @@ main (void) {
             default:
                 if ( continuous ) {
                     break;
-                } else {
-                    continue;
                 }
         }
 
