@@ -35,13 +35,13 @@ main (void) {
     signal(SIGINT, signal_handler);
     signal(SIGHUP, signal_handler);
 
+    size_t gen = 0;
     int c = 1;
-    for ( struct timespec t = { .tv_nsec = 125000000 }; (c = getch()); nanosleep(&t, 0) ) {
+    for ( struct timespec t = { .tv_nsec = 125000000 }; (c = getch()); nanosleep(&t, 0), ++ gen ) {
         switch ( c ) {
             case ' ':
                 continuous = !continuous;
                 nodelay(stdscr, continuous);
-                c = 1;
                 break;
 
             case KEY_RIGHT: break;
@@ -69,6 +69,14 @@ main (void) {
         }
 
         print_board(board);
+        attron(A_REVERSE);
+        mvprintw(ROWS, 0, "generation %zu | evolving every ", gen);
+        if ( !continuous ) {
+            printw("∞ ms\n");
+        } else {
+            printw("%zu ms\n", t.tv_nsec / 1000000);
+        }
+        attroff(A_REVERSE);
         count_neighbors(board, counts);
         evolve(board, counts);
     }
@@ -122,7 +130,7 @@ print_board (uint8_t * board) {
     for ( size_t i = 0, y = 0; i < cells; ++ i, y += !(i % COLUMNS) ) {
         size_t x = i % COLUMNS;
         mvprintw((signed )y, (signed )x, "%1s", getbit(board, i) ? "⬝" : " ");
-    } refresh();
+    }
 }
 
 void

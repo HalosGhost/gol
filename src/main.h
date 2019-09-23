@@ -23,7 +23,7 @@ print_board (uint8_t *);
 void
 signal_handler (signed);
 
-#define ROWS ((size_t )LINES)
+#define ROWS ((size_t )(LINES - 1))
 #define COLUMNS ((size_t )COLS)
 
 static int continuous = TRUE;
