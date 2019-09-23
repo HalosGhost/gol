@@ -11,22 +11,24 @@ main (void) {
     nodelay(stdscr, continuous);
     keypad(stdscr, TRUE);
 
-    cur  = (uint8_t ** )malloc(sizeof(uint8_t *) * ROWS);
-    next = (uint8_t ** )malloc(sizeof(uint8_t *) * ROWS);
+    cells = (size_t )(ROWS * COLUMNS);
 
-    for ( size_t i = 0; i < ROWS; ++ i ) {
-        cur[i]  = (uint8_t * )malloc(sizeof(uint8_t *) * COLUMNS);
-        next[i] = (uint8_t * )malloc(sizeof(uint8_t *) * COLUMNS);
-    }
+    bitbuffer(uint8_t, board, cells);
+    uint8_t * counts = calloc(sizeof(uint8_t), cells);
+
+    if ( !board  ) { goto cleanup; }
+    if ( !counts ) { goto cleanup; }
 
     srand((unsigned )time(NULL));
 
     setup:
         run_state = 0;
 
-    for ( size_t i = 0; i < ROWS; ++ i ) {
-        for ( size_t j = 0; j < COLUMNS; ++ j ) {
-            cur[i][j] = !!(rand() % 2);
+    for ( size_t i = 0; i < cells; ++ i ) {
+        if ( !!(rand() % 2) ) {
+            setbit(board, i);
+        } else { // needed for resetting the board
+            unsetbit(board, i);
         }
     }
 
@@ -66,66 +68,59 @@ main (void) {
             default: break;
         }
 
-        print_board(cur);
-        evolve(cur, next);
+        print_board(board);
+        count_neighbors(board, counts);
+        evolve(board, counts);
     }
 
     cleanup:
         endwin();
-        for ( size_t i = 0; i < ROWS; ++ i ) {
-            if ( cur[i]  ) { free(cur[i]);  }
-            if ( next[i] ) { free(next[i]); }
-        }
 
-        if ( cur  ) { free(cur); }
-        if ( next ) { free(next); }
+        if ( board  ) { free(board); }
+        if ( counts ) { free(counts); }
 
-        exit(EXIT_SUCCESS);
-}
-
-uint8_t
-neighbor_count (size_t x, size_t y, uint8_t ** b) {
-
-    uint8_t total = 0;
-
-    if ( x && y ) { total += b[x-1][y-1]; } // top-left
-    if ( x ) { total += b[x-1][y]; } // top-center
-    if ( x && y+1 < COLUMNS ) { total += b[x-1][y+1]; } // top-right
-
-    if ( y ) { total += b[x][y-1]; } // middle-left
-    if ( y+1 < COLUMNS ) { total += b[x][y+1]; } // middle-right
-
-    if ( y && x+1 < ROWS ) { total += b[x+1][y-1]; } // bottom-left
-    if ( x+1 < ROWS ) { total += b[x+1][y]; } // bottom-center
-    if ( x+1 < ROWS && y+1 < COLUMNS ) { total += b[x+1][y+1]; } // bottom-right
-
-    return total;
+        return EXIT_SUCCESS;
 }
 
 void
-evolve (uint8_t ** o, uint8_t ** n) {
+count_neighbors (uint8_t * board, uint8_t * counts) {
 
-    for ( size_t i = 0; i < ROWS; ++ i ) {
-        for ( size_t j = 0; j < COLUMNS; ++ j ) {
-            uint8_t nc = neighbor_count(i, j, o);
-            n[i][j] = nc == 3 || (nc == 2 && o[i][j]);
-        }
+    for ( size_t i = 0, y = 0; i < cells; ++ i, y += !(i % COLUMNS) ) {
+        size_t x = i % COLUMNS;
+        counts[i] = 0;
+
+        // in-order, check liveness from upper-left to lower-right (skipping the current cell)
+        if ( x && y ) { counts[i] += getbit(board, i - COLUMNS - 1); }
+        if ( y ) { counts[i] += getbit(board, i - COLUMNS); }
+        if ( x+1 < COLUMNS && y ) { counts[i] += getbit(board, i - COLUMNS + 1); }
+
+        if ( x ) { counts[i] += getbit(board, i - 1); }
+        if ( x+1 < COLUMNS ) { counts[i] += getbit(board, i + 1); }
+
+        if ( x && y+1 < ROWS ) { counts[i] += getbit(board, i + COLUMNS - 1); }
+        if ( y+1 < ROWS ) { counts[i] += getbit(board, i + COLUMNS); }
+        if ( x+1 < COLUMNS && y+1 < ROWS ) { counts[i] += getbit(board, i + COLUMNS + 1); }
     }
+}
 
-    for ( size_t i = 0; i < ROWS; ++ i ) {
-        for ( size_t j = 0; j < COLUMNS; ++ j ) {
-            o[i][j] = n[i][j];
+void
+evolve (uint8_t * board, uint8_t * counts) {
+
+    for ( size_t i = 0; i < cells; ++ i ) {
+        if ( counts[i] == 3 || (counts[i] == 2 && getbit(board, i)) ) {
+            setbit(board, i);
+        } else {
+            unsetbit(board, i);
         }
     }
 }
 
 void
-print_board (uint8_t ** board) {
+print_board (uint8_t * board) {
 
-    for ( size_t i = 0; i < ROWS; ++ i ) {
-        for ( size_t j = 0; j < COLUMNS; ++ j ) {
-            mvprintw((signed )i, (signed )j, "%s", board[i][j] ? "⬝" : " ");
-        }
+    for ( size_t i = 0, y = 0; i < cells; ++ i, y += !(i % COLUMNS) ) {
+        size_t x = i % COLUMNS;
+        mvprintw((signed )y, (signed )x, "%1s", getbit(board, i) ? "⬝" : " ");
     } refresh();
 }
 
