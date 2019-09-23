@@ -7,6 +7,7 @@
 #include <ncurses.h>
 #include <signal.h>
 #include <locale.h>
+#include <string.h>
 
 #include "bitagg.h"
 

@@ -85,9 +85,10 @@ main (void) {
 void
 count_neighbors (uint8_t * board, uint8_t * counts) {
 
+    memset(counts, 0, cells);
+
     for ( size_t i = 0, y = 0; i < cells; ++ i, y += !(i % COLUMNS) ) {
         size_t x = i % COLUMNS;
-        counts[i] = 0;
 
         // in-order, check liveness from upper-left to lower-right (skipping the current cell)
         if ( x && y ) { counts[i] += getbit(board, i - COLUMNS - 1); }
