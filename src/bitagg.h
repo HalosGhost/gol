@@ -11,9 +11,37 @@
 #define bitarray(type, name, length) type name [(((length) + bitsof(type) - 1) / bitsof(type))] = { 0 }
 #define bitbuffer(type, name, length) type * name = calloc((((length) + bitsof(type) - 1) / bitsof(type)), sizeof(type))
 
+/**
+ * Note: All macros below this block are unhygenic
+ **
+ * Because all of these macros evaluate at least one argument twice, passing
+ * them any expression that causes a side-effect is unsafe.
+ */
+
 #define getbit(arr, idx)   (!!((arr)[(idx) / bitsof(*(arr))] &   (1 << ((idx) % bitsof(*(arr))))))
+
 #define setbit(arr, idx)      ((arr)[(idx) / bitsof(*(arr))] |=  (1 << ((idx) % bitsof(*(arr)))))
 #define unsetbit(arr, idx)    ((arr)[(idx) / bitsof(*(arr))] &= ~(1 << ((idx) % bitsof(*(arr)))))
+
+// fancier functions
+
+#define togglebit(arr, idx) \
+    do { \
+        if ( getbit((arr), (idx)) ) { \
+            unsetbit((arr), (idx)); \
+        } else { \
+            setbit((arr), (idx)); \
+        } \
+    } while (0)
+
+#define assignbit(arr, idx, val) \
+    do { \
+        if ( val ) { \
+            setbit((arr), (idx)); \
+        } else { \
+            unsetbit((arr), (idx)); \
+        } \
+    } while (0)
 
 #endif // BIT_AGGREGATE_H
 

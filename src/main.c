@@ -25,11 +25,7 @@ main (void) {
         run_state = 0;
 
     for ( size_t i = 0; i < cells; ++ i ) {
-        if ( !!(rand() % 2) ) {
-            setbit(board, i);
-        } else { // needed for resetting the board
-            unsetbit(board, i);
-        }
+        assignbit(board, i, !!(rand() % 2));
     }
 
     signal(SIGINT, signal_handler);
@@ -56,10 +52,7 @@ main (void) {
 
             case 'q': goto cleanup;
 
-            default:
-                if ( continuous ) {
-                    break;
-                }
+            default: if ( continuous ) { break; }
         }
 
         switch ( run_state ) {
@@ -72,10 +65,11 @@ main (void) {
         attron(A_REVERSE);
         mvprintw(ROWS, 0, "generation %zu | evolving every ", gen);
         if ( !continuous ) {
-            printw("∞ ms\n");
+            printw("∞");
         } else {
-            printw("%zu ms\n", t.tv_nsec / 1000000);
+            printw("%zu", t.tv_nsec / 1000000);
         }
+        printw(" ms\n");
         attroff(A_REVERSE);
         count_neighbors(board, counts);
         evolve(board, counts);
@@ -116,11 +110,7 @@ void
 evolve (uint8_t * board, uint8_t * counts) {
 
     for ( size_t i = 0; i < cells; ++ i ) {
-        if ( counts[i] == 3 || (counts[i] == 2 && getbit(board, i)) ) {
-            setbit(board, i);
-        } else {
-            unsetbit(board, i);
-        }
+        assignbit(board, i, counts[i] == 3 || (counts[i] == 2 && getbit(board, i)));
     }
 }
 
