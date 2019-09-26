@@ -8,8 +8,8 @@
 #define bitsof(x) (sizeof(x) * CHAR_BIT)
 #define members_needed(type, length) (((length) + bitsof(type) - 1) / bitsof(type))
 
-#define bitarray(type, name, length) type name [members_needed(type, length)] = { 0 }
-#define bitbuffer(type, name, length) type * name = calloc(members_needed(type, length), sizeof(type))
+#define bitarray(type, name, length) type name [members_needed(type, (length))] = { 0 }
+#define bitbuffer(type, name, length) type * name = calloc(members_needed(type, (length)), sizeof(type))
 
 /**
  * Note: All macros below this block are unhygenic
