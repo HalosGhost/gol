@@ -18,11 +18,12 @@
  * them any expression that causes a side-effect is unsafe.
  */
 
-#define getbit(arr, idx)   (!!((arr)[(idx) / bitsof(*(arr))] &   (1 << ((idx) % bitsof(*(arr))))))
+#define primbitop(arr, idx, op) ((arr)[(idx) / bitsof(*(arr))] op (1 << ((idx) % bitsof(*(arr)))))
 
-#define setbit(arr, idx)      ((arr)[(idx) / bitsof(*(arr))] |=  (1 << ((idx) % bitsof(*(arr)))))
-#define unsetbit(arr, idx)    ((arr)[(idx) / bitsof(*(arr))] &= ~(1 << ((idx) % bitsof(*(arr)))))
-#define togglebit(arr, idx)   ((arr)[(idx) / bitsof(*(arr))] ^=  (1 << ((idx) % bitsof(*(arr)))))
+#define getbit(arr, idx)    (!!primbitop((arr), (idx), &   ))
+#define setbit(arr, idx)       primbitop((arr), (idx), |=  )
+#define unsetbit(arr, idx)     primbitop((arr), (idx), &= ~)
+#define togglebit(arr, idx)    primbitop((arr), (idx), ^=  )
 
 #define assignbit(arr, idx, val) \
     do { \
