@@ -22,17 +22,7 @@
 
 #define setbit(arr, idx)      ((arr)[(idx) / bitsof(*(arr))] |=  (1 << ((idx) % bitsof(*(arr)))))
 #define unsetbit(arr, idx)    ((arr)[(idx) / bitsof(*(arr))] &= ~(1 << ((idx) % bitsof(*(arr)))))
-
-// fancier functions
-
-#define togglebit(arr, idx) \
-    do { \
-        if ( getbit((arr), (idx)) ) { \
-            unsetbit((arr), (idx)); \
-        } else { \
-            setbit((arr), (idx)); \
-        } \
-    } while (0)
+#define togglebit(arr, idx)   ((arr)[(idx) / bitsof(*(arr))] ^=  (1 << ((idx) % bitsof(*(arr)))))
 
 #define assignbit(arr, idx, val) \
     do { \
