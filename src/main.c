@@ -8,8 +8,8 @@ main (void) {
     noecho();
     cbreak();
     curs_set(0);
-    nodelay(stdscr, continuous);
     keypad(stdscr, TRUE);
+    mousemask(BUTTON1_PRESSED, NULL);
 
     cells = (size_t )(ROWS * COLUMNS);
 
@@ -23,17 +23,36 @@ main (void) {
 
     setup:
         run_state = 0;
+        continuous = FALSE;
+        nodelay(stdscr, continuous);
 
     for ( size_t i = 0; i < cells; ++ i ) {
-        assignbit(board, i, !!(rand() % 2));
+        unsetbit(board, i);
     }
 
     signal(SIGINT, signal_handler);
     signal(SIGHUP, signal_handler);
 
+    MEVENT ev = { 0 };
     size_t gen = 0;
     int c = 1;
-    for ( struct timespec t = { .tv_nsec = 125000000 }; (c = getch()); nanosleep(&t, 0), ++ gen ) {
+    struct timespec t = { .tv_nsec = 125000000 };
+
+    mainloop:
+    do {
+        print_board(board);
+        attron(A_REVERSE);
+        mvprintw(ROWS, 0, "generation %zu | evolving every ", gen);
+        if ( !continuous ) {
+            printw("∞");
+        } else {
+            printw("%zu", t.tv_nsec / 1000000);
+        }
+        printw(" ms\n");
+        attroff(A_REVERSE);
+
+        c = getch();
+
         switch ( c ) {
             case ' ':
                 continuous = !continuous;
@@ -53,6 +72,12 @@ main (void) {
             case 'q': goto cleanup;
             case 'r': goto setup;
 
+            case KEY_MOUSE:
+                if ( continuous ) { break; }
+                getmouse(&ev);
+                togglebit(board, ev.y * COLUMNS + ev.x);
+                goto mainloop;
+
             default: if ( continuous ) { break; }
         }
 
@@ -62,19 +87,12 @@ main (void) {
             default: break;
         }
 
-        print_board(board);
-        attron(A_REVERSE);
-        mvprintw(ROWS, 0, "generation %zu | evolving every ", gen);
-        if ( !continuous ) {
-            printw("∞");
-        } else {
-            printw("%zu", t.tv_nsec / 1000000);
-        }
-        printw(" ms\n");
-        attroff(A_REVERSE);
+        nanosleep(&t, 0);
+        ++ gen;
+
         count_neighbors(board, counts);
         evolve(board, counts);
-    }
+    } while ( c );
 
     cleanup:
         endwin();

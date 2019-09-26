@@ -26,7 +26,7 @@ signal_handler (signed);
 #define ROWS ((size_t )(LINES - 1))
 #define COLUMNS ((size_t )COLS)
 
-static int continuous = TRUE;
+static int continuous = FALSE;
 static size_t cells;
 static volatile sig_atomic_t run_state;
 static volatile sig_atomic_t caught_signum;
