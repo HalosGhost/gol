@@ -51,6 +51,7 @@ main (void) {
                 break;
 
             case 'q': goto cleanup;
+            case 'r': goto setup;
 
             default: if ( continuous ) { break; }
         }
