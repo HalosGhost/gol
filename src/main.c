@@ -22,9 +22,10 @@ main (signed argc, char * argv[]) {
     srand((unsigned )time(NULL));
 
     uint8_t rate = 0;
-    for ( signed oi = 0, c = getopt_long(argc, argv, "r:e", os, &oi);
+    uint8_t help = 0;
+    for ( signed oi = 0, c = getopt_long(argc, argv, "r:eh", os, &oi);
          c != -1;
-                         c = getopt_long(argc, argv, "r:e", os, &oi)) {
+                         c = getopt_long(argc, argv, "r:eh", os, &oi)) {
 
         switch ( c ) {
             case 'e':
@@ -37,6 +38,10 @@ main (signed argc, char * argv[]) {
                 rate %= 101;
                 continuous = TRUE;
                 break;
+
+            case 'h':
+                help = 1;
+                goto cleanup;
         }
     }
 
@@ -67,7 +72,6 @@ main (signed argc, char * argv[]) {
         } else {
             printw("%zu", t.tv_nsec / 1000000);
         }
-        printw(" ms\n");
         attroff(A_REVERSE);
 
         c = getch();
@@ -115,6 +119,12 @@ main (signed argc, char * argv[]) {
 
     cleanup:
         endwin();
+
+        if ( help ) {
+            for ( struct option * o = os; o && o->name; ++ o ) {
+                printf("%c, %s %s\n", o->val, o->name, o->has_arg ? "ARG" : "");
+            }
+        }
 
         if ( board  ) { free(board); }
         if ( counts ) { free(counts); }

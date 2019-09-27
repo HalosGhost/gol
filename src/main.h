@@ -35,6 +35,7 @@ static volatile sig_atomic_t caught_signum;
 static struct option os[] = {
     { "random", 1, 0, 'r' },
     { "empty",  0, 0, 'e' },
+    { "help",   0, 0, 'h' },
     { 0, 0, 0, 0 },
 };
 
