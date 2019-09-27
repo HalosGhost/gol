@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <locale.h>
 #include <string.h>
+#include <getopt.h>
 
 #include "bitagg.h"
 
@@ -30,4 +31,10 @@ static int continuous = FALSE;
 static size_t cells;
 static volatile sig_atomic_t run_state;
 static volatile sig_atomic_t caught_signum;
+
+static struct option os[] = {
+    { "random", 1, 0, 'r' },
+    { "empty",  0, 0, 'e' },
+    { 0, 0, 0, 0 },
+};
 

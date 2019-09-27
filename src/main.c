@@ -1,7 +1,7 @@
 #include "main.h"
 
 signed
-main (void) {
+main (signed argc, char * argv[]) {
 
     setlocale(LC_ALL, "");
     initscr();
@@ -21,14 +21,33 @@ main (void) {
 
     srand((unsigned )time(NULL));
 
+    uint8_t rate = 0;
+    for ( signed oi = 0, c = getopt_long(argc, argv, "r:e", os, &oi);
+         c != -1;
+                         c = getopt_long(argc, argv, "r:e", os, &oi)) {
+
+        switch ( c ) {
+            case 'e':
+                rate = 0;
+                continuous = FALSE;
+                break;
+
+            case 'r':
+                sscanf(optarg, "%" SCNu8, &rate);
+                rate %= 101;
+                continuous = TRUE;
+                break;
+        }
+    }
+
     setup:
         run_state = 0;
-        continuous = FALSE;
-        nodelay(stdscr, continuous);
 
     for ( size_t i = 0; i < cells; ++ i ) {
-        unsetbit(board, i);
+        assignbit(board, i, rand() % 100 < rate);
     }
+
+    nodelay(stdscr, continuous);
 
     signal(SIGINT, signal_handler);
     signal(SIGHUP, signal_handler);
