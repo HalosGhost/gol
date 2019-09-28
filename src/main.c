@@ -68,10 +68,11 @@ main (signed argc, char * argv[]) {
         attron(A_REVERSE);
         mvprintw(ROWS, 0, "generation %zu | evolving every ", gen);
         if ( !continuous ) {
-            printw("∞ ms\n");
+            printw("∞");
         } else {
-            printw("%zu ms\n", t.tv_nsec / 1000000);
+            printw("%zu", t.tv_nsec / 1000000);
         }
+        printw(" ms | random density: %" PRIu8"/100\n", rate);
         attroff(A_REVERSE);
 
         c = getch();
@@ -90,6 +91,16 @@ main (signed argc, char * argv[]) {
 
             case KEY_DOWN:
                 t.tv_nsec += 25000000;
+                break;
+
+            case KEY_NPAGE:
+                rate -= 5;
+                if ( rate > 100 ) { rate = 100; }
+                break;
+
+            case KEY_PPAGE:
+                rate += 5;
+                if ( rate > 100 ) { rate = 100; }
                 break;
 
             case 'q': goto cleanup;
