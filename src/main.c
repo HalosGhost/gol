@@ -87,21 +87,21 @@ main (signed argc, char * argv[]) {
 
             case KEY_UP:
                 t.tv_nsec -= 25000000;
-                break;
+                continue;
 
             case KEY_DOWN:
                 t.tv_nsec += 25000000;
-                break;
+                continue;
 
             case KEY_NPAGE:
                 rate -= 5;
                 if ( rate > 100 ) { rate = 100; }
-                break;
+                continue;
 
             case KEY_PPAGE:
                 rate += 5;
                 if ( rate > 100 ) { rate = 100; }
-                break;
+                continue;
 
             case 'q': goto cleanup;
             case 'r': goto setup;
