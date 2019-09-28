@@ -45,6 +45,7 @@ main (signed argc, char * argv[]) {
         }
     }
 
+    struct timespec t = { .tv_nsec = 125000000 };
     setup:
         run_state = 0;
 
@@ -60,7 +61,6 @@ main (signed argc, char * argv[]) {
     MEVENT ev = { 0 };
     size_t gen = 0;
     int c = 1;
-    struct timespec t = { .tv_nsec = 125000000 };
 
     mainloop:
     do {
@@ -68,9 +68,9 @@ main (signed argc, char * argv[]) {
         attron(A_REVERSE);
         mvprintw(ROWS, 0, "generation %zu | evolving every ", gen);
         if ( !continuous ) {
-            printw("∞");
+            printw("∞ ms\n");
         } else {
-            printw("%zu", t.tv_nsec / 1000000);
+            printw("%zu ms\n", t.tv_nsec / 1000000);
         }
         attroff(A_REVERSE);
 
