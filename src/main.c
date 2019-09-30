@@ -22,10 +22,11 @@ main (signed argc, char * argv[]) {
     srand((unsigned )time(NULL));
 
     uint8_t rate = 0;
+    uint8_t pause = 125;
     uint8_t help = 0;
-    for ( signed oi = 0, c = getopt_long(argc, argv, "r:eh", os, &oi);
+    for ( signed oi = 0, c = getopt_long(argc, argv, "r:p:eh", os, &oi);
          c != -1;
-                         c = getopt_long(argc, argv, "r:eh", os, &oi)) {
+                         c = getopt_long(argc, argv, "r:p:eh", os, &oi)) {
 
         switch ( c ) {
             case 'e':
@@ -39,13 +40,17 @@ main (signed argc, char * argv[]) {
                 continuous = TRUE;
                 break;
 
+            case 'p':
+                sscanf(optarg, "%" SCNu8, &pause);
+                break;
+
             case 'h':
                 help = 1;
                 goto cleanup;
         }
     }
 
-    struct timespec t = { .tv_nsec = 125000000 };
+    struct timespec t = { .tv_nsec = pause * 1000000 };
     setup:
         run_state = 0;
 
