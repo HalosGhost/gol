@@ -13,11 +13,11 @@ main (signed argc, char * argv[]) {
 
     cells = (size_t )(ROWS * COLUMNS);
 
-    bitbuffer(uint8_t, board, cells);
-    uint8_t * counts = calloc(sizeof(uint8_t), cells);
+    bitbuffer(uint8_t, back, cells);
+    bitbuffer(uint8_t, forth, cells);
 
-    if ( !board  ) { goto cleanup; }
-    if ( !counts ) { goto cleanup; }
+    if ( !back   ) { goto cleanup; }
+    if ( !forth  ) { goto cleanup; }
 
     srand((unsigned )time(NULL));
 
@@ -55,7 +55,7 @@ main (signed argc, char * argv[]) {
         run_state = 0;
 
     for ( size_t i = 0; i < cells; ++ i ) {
-        assignbit(board, i, rand() % 100 < rate);
+        assignbit(back, i, rand() % 100 < rate);
     }
 
     nodelay(stdscr, continuous);
@@ -69,7 +69,8 @@ main (signed argc, char * argv[]) {
 
     mainloop:
     do {
-        print_board(board);
+        int evenGen = !(gen % 2);
+        print_board(evenGen ? back : forth);
         attron(A_REVERSE);
         mvprintw(ROWS, 0, "generation %zu | evolving every ", gen);
         if ( !continuous ) {
@@ -114,7 +115,7 @@ main (signed argc, char * argv[]) {
             case KEY_MOUSE:
                 if ( continuous ) { break; }
                 getmouse(&ev);
-                togglebit(board, ev.y * COLUMNS + ev.x);
+                togglebit(evenGen ? back : forth, ev.y * COLUMNS + ev.x);
                 goto mainloop;
 
             default: if ( continuous ) { break; }
@@ -129,8 +130,11 @@ main (signed argc, char * argv[]) {
         nanosleep(&t, 0);
         ++ gen;
 
-        count_neighbors(board, counts);
-        evolve(board, counts);
+        if ( evenGen ) {
+            evolve(back, forth);
+        } else {
+            evolve(forth, back);
+        }
     } while ( c );
 
     cleanup:
@@ -142,39 +146,30 @@ main (signed argc, char * argv[]) {
             }
         }
 
-        if ( board  ) { free(board); }
-        if ( counts ) { free(counts); }
+        if ( back  ) { free(back);  }
+        if ( forth ) { free(forth); }
 
         return EXIT_SUCCESS;
 }
 
 void
-count_neighbors (uint8_t * board, uint8_t * counts) {
+evolve (uint8_t * current, uint8_t * next) {
 
-    memset(counts, 0, cells);
+    for ( size_t i = 0, y = 0, x = 0; i < cells; ++ i, y += !(i % COLUMNS), x = i % COLUMNS ) {
+        uint8_t count = 0;
 
-    for ( size_t i = 0, y = 0; i < cells; ++ i, y += !(i % COLUMNS) ) {
-        size_t x = i % COLUMNS;
+        if ( x && y ) { count += getbit(current, i - COLUMNS - 1); }
+        if ( y ) { count += getbit(current, i - COLUMNS); }
+        if ( x+1 < COLUMNS && y ) { count += getbit(current, i - COLUMNS + 1); }
 
-        // in-order, check liveness from upper-left to lower-right (skipping the current cell)
-        if ( x && y ) { counts[i] += getbit(board, i - COLUMNS - 1); }
-        if ( y ) { counts[i] += getbit(board, i - COLUMNS); }
-        if ( x+1 < COLUMNS && y ) { counts[i] += getbit(board, i - COLUMNS + 1); }
+        if ( x ) { count += getbit(current, i - 1); }
+        if ( x+1 < COLUMNS ) { count += getbit(current, i + 1); }
 
-        if ( x ) { counts[i] += getbit(board, i - 1); }
-        if ( x+1 < COLUMNS ) { counts[i] += getbit(board, i + 1); }
+        if ( x && y+1 < ROWS ) { count += getbit(current, i + COLUMNS - 1); }
+        if ( y+1 < ROWS ) { count += getbit(current, i + COLUMNS); }
+        if ( x+1 < COLUMNS && y+1 < ROWS ) { count += getbit(current, i + COLUMNS + 1); }
 
-        if ( x && y+1 < ROWS ) { counts[i] += getbit(board, i + COLUMNS - 1); }
-        if ( y+1 < ROWS ) { counts[i] += getbit(board, i + COLUMNS); }
-        if ( x+1 < COLUMNS && y+1 < ROWS ) { counts[i] += getbit(board, i + COLUMNS + 1); }
-    }
-}
-
-void
-evolve (uint8_t * board, uint8_t * counts) {
-
-    for ( size_t i = 0; i < cells; ++ i ) {
-        assignbit(board, i, counts[i] == 3 || (counts[i] == 2 && getbit(board, i)));
+        assignbit(next, i, count == 3 || (count == 2 && getbit(current, i)));
     }
 }
 

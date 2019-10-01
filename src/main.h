@@ -13,9 +13,6 @@
 #include "bitagg.h"
 
 void
-count_neighbors (uint8_t *, uint8_t *);
-
-void
 evolve (uint8_t *, uint8_t *);
 
 void
