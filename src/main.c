@@ -66,17 +66,19 @@ main (signed argc, char * argv[]) {
     MEVENT ev = { 0 };
     size_t gen = 0;
     int c = 1;
+    uint8_t * board = back;
 
     mainloop:
     do {
         int evenGen = !(gen % 2);
-        print_board(evenGen ? back : forth);
+        board = evenGen ? back : forth;
+        print_board(board);
         attron(A_REVERSE);
         mvprintw(ROWS, 0, "generation %zu | evolving every ", gen);
         if ( !continuous ) {
             printw("∞");
         } else {
-            printw("%zu", t.tv_nsec / 1000000);
+            printw("%ld", t.tv_nsec / 1000000);
         }
         printw(" ms | random density: %" PRIu8"/100\n", rate);
         attroff(A_REVERSE);
@@ -93,10 +95,12 @@ main (signed argc, char * argv[]) {
 
             case KEY_UP:
                 t.tv_nsec -= 25000000;
+                if ( t.tv_nsec < 0 ) { t.tv_nsec = 0; }
                 continue;
 
             case KEY_DOWN:
                 t.tv_nsec += 25000000;
+                if ( t.tv_nsec > 250000000 ) { t.tv_nsec = 250000000; }
                 continue;
 
             case KEY_NPAGE:
@@ -115,7 +119,7 @@ main (signed argc, char * argv[]) {
             case KEY_MOUSE:
                 if ( continuous ) { break; }
                 getmouse(&ev);
-                togglebit(evenGen ? back : forth, ev.y * COLUMNS + ev.x);
+                togglebit(board, ev.y * COLUMNS + ev.x);
                 goto mainloop;
 
             default: if ( continuous ) { break; }
