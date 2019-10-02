@@ -22,7 +22,7 @@
 
 #define getbit(arr, idx)    (!!primbitop((arr), (idx), &   ))
 #define setbit(arr, idx)       primbitop((arr), (idx), |=  )
-#define unsetbit(arr, idx)     primbitop((arr), (idx), &= ~)
+#define clearbit(arr, idx)     primbitop((arr), (idx), &= ~)
 #define togglebit(arr, idx)    primbitop((arr), (idx), ^=  )
 
 #define assignbit(arr, idx, val) \
@@ -30,7 +30,7 @@
         if ( val ) { \
             setbit((arr), (idx)); \
         } else { \
-            unsetbit((arr), (idx)); \
+            clearbit((arr), (idx)); \
         } \
     } while (0)
 
