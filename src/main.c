@@ -80,7 +80,7 @@ main (signed argc, char * argv[]) {
         } else {
             printw("%ld", t.tv_nsec / 1000000);
         }
-        printw(" ms | random density: %" PRIu8"/100\n", rate);
+        printw(" ms | random density: %" PRIu8 "/100%*c", rate, COLUMNS, '\n');
         attroff(A_REVERSE);
 
         c = getch();
