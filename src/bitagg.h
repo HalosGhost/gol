@@ -26,13 +26,7 @@
 #define togglebit(arr, idx)    primbitop((arr), (idx), ^=  )
 
 #define assignbit(arr, idx, val) \
-    do { \
-        if ( val ) { \
-            setbit((arr), (idx)); \
-        } else { \
-            clearbit((arr), (idx)); \
-        } \
-    } while (0)
+    ((val) ? setbit((arr), (idx)) : clearbit((arr), (idx)))
 
 #endif // BIT_AGGREGATE_H
 
