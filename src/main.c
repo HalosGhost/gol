@@ -18,8 +18,7 @@ main (signed argc, char * argv[]) {
     bitbuffer(uint8_t, back, cells);
     bitbuffer(uint8_t, forth, cells);
 
-    if ( !back   ) { goto cleanup; }
-    if ( !forth  ) { goto cleanup; }
+    if ( !back || !forth ) { goto cleanup; }
 
     srand((unsigned )time(NULL));
 
