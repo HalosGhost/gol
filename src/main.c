@@ -74,13 +74,13 @@ main (signed argc, char * argv[]) {
         board = evenGen ? back : forth;
         print_board(board);
         attron(A_REVERSE);
-        mvprintw(ROWS, 0, "generation %zu | evolving every ", gen);
-        if ( !continuous ) {
-            printw("∞");
-        } else {
-            printw("%ld", t.tv_nsec / 1000000);
-        }
-        printw(" ms | random density: %" PRIu8 "/100%*c", rate, COLUMNS, '\n');
+        mvprintw(ROWS, 0,
+            "generation %zu | "
+            "evolving every %ld ms | "
+            "random density: %" PRIu8 "/100"
+            "%*c",
+            gen, t.tv_nsec / 1000000, rate, COLUMNS, '\n'
+        );
         attroff(A_REVERSE);
 
         c = getch();
