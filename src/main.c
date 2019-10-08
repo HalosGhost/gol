@@ -14,6 +14,7 @@ main (signed argc, char * argv[]) {
     cells = (size_t )(ROWS * COLUMNS);
 
     uint8_t help = 0;
+    continuous = argc <= 1;
 
     bitbuffer(uint8_t, back, cells);
     bitbuffer(uint8_t, forth, cells);
@@ -23,7 +24,7 @@ main (signed argc, char * argv[]) {
     srand((unsigned )time(NULL));
 
     uint8_t rate = 0;
-    uint8_t pause = 125;
+    uint8_t pause = 50;
     for ( signed oi = 0, c = getopt_long(argc, argv, "r:p:eh", os, &oi);
          c != -1;
                          c = getopt_long(argc, argv, "r:p:eh", os, &oi)) {
@@ -83,9 +84,7 @@ main (signed argc, char * argv[]) {
         );
         attroff(A_REVERSE);
 
-        c = getch();
-
-        switch ( c ) {
+        switch ( (c = getch()) ) {
             case ' ':
                 continuous = !continuous;
                 nodelay(stdscr, continuous);
