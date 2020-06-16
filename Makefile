@@ -1,32 +1,30 @@
-PROGNM =  gol
-PREFIX ?= /usr/local
-DOCDIR ?= $(DESTDIR)$(PREFIX)/share/man
-LIBDIR ?= $(DESTDIR)$(PREFIX)/lib
-BINDIR ?= $(DESTDIR)$(PREFIX)/bin
-ZSHDIR ?= $(DESTDIR)$(PREFIX)/share/zsh
-BSHDIR ?= $(DESTDIR)$(PREFIX)/share/bash-completions
+PROGNM = gol
 
-include Makerules
-.PHONY: all clean cov-build scan-build install uninstall
+CC ?= gcc
+CFLAGS ?= -O2 -fPIE -flto -fstack-protector-strong --param=ssp-buffer-size=1 -Wno-reserved-id-macro -Wall -Wextra -Wpedantic -Werror -std=gnu18 -fsanitize=undefined
+LDFLAGS ?= `pkg-config --libs-only-l ncurses`
+VER = `git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'`
+FMFLAGS = -wp -then -wp -wp-rte
 
-all: dist
-	@$(CC) $(CFLAGS) $(LDFLAGS) src/main.c -o dist/$(PROGNM)
+ifneq ($(CC), tcc)
+CFLAGS += -pie -D_FORTIFY_SOURCE=2
+LDFLAGS += -Wl,-z,relro,-z,now
+endif
 
-scan-build:
-	@scan-build --use-cc=$(CC) make
+ifeq ($(CC), clang)
+CFLAGS += -Weverything -fsanitize-trap=undefined
+endif
 
-clean:
-	@rm -rf -- dist cov-int $(PROGNM).tgz make.sh ./src/*.plist
+CFLAGS += -Wno-disabled-macro-expansion
 
-cov-build: dist clean
-	@cov-build --dir cov-int make
-	@tar czvf $(PROGNM).tgz cov-int
+BLDRT ?= dist
+CONFIGURATION ?= debug
+ifneq ($(CONFIGURATION), release)
+BLDDIR ?= $(BLDRT)/debug
+CFLAGS += -g -ggdb -O0 -U_FORTIFY_SOURCE
+else
+BLDDIR ?= $(BLDRT)/release
+CFLAGS += -DNDEBUG -O3
+endif
 
-dist:
-	@mkdir -p dist
-
-install:
-	@install -Dm755 dist/$(PROGNM) $(BINDIR)/$(PROGNM)
-
-uninstall:
-	@rm -f $(BINDIR)/$(PROGNM)
+include mke/rules
