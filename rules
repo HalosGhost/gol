@@ -1,24 +1,29 @@
 PREFIX ?= /usr/local
-DOCDIR ?= $(DESTDIR)$(PREFIX)/share/man
-LIBDIR ?= $(DESTDIR)$(PREFIX)/lib
-BINDIR ?= $(DESTDIR)$(PREFIX)/bin
-ZSHDIR ?= $(DESTDIR)$(PREFIX)/share/zsh
-BSHDIR ?= $(DESTDIR)$(PREFIX)/share/bash-completions
+PKGDIR ?= $(DESTDIR)$(PREFIX)
+DOCDIR ?= $(PKGDIR)/share/man
+LIBDIR ?= $(PKGDIR)/lib
+BINDIR ?= $(PKGDIR)/bin
+ZSHDIR ?= $(PKGDIR)/share/zsh
+BSHDIR ?= $(PKGDIR)/share/bash-completions
+RTDIR  ?= $(PWD)
 MKDIR  ?= mkdir -p
 RUNCMD ?= ./$(BLDDIR)/$(PROGNM)
+SOURCES ?= $(wildcard src/*.c)
+WATCHDIRS ?= src doc
+WATCHRULE ?= run
 
-.PHONY: all bin clean scan-build cov-build complexity debug doc verify install uninstall
+.PHONY: all bin clean scan-build cov-build complexity debug doc verify watch install uninstall
 
 all: $(BLDDIR) bin check doc
 
 bin: $(BLDDIR)
-	@$(CC) $(CFLAGS) $(LDFLAGS) src/*.c -DVERSION="\"$(VER)\n\"" -o $(BLDDIR)/$(PROGNM)
+	@$(CC) $(CFLAGS) $(SOURCES) -DVERSION="\"$(VER)\n\"" -o $(BLDDIR)/$(PROGNM) $(LDFLAGS)
 
-check: bin
-	@(if [ -x ./test-suite ]; then ./test-suite; else true; fi)
+check: $(BLDDIR)/$(PROGNM)
+	@(if [ -x ./test-suite ]; then RUNCMD=$(RUNCMD) ./test-suite; else true; fi)
 
 clean:
-	@rm -rf -- $(BLDRT) cov-int $(PROGNM).tgz make.sh ./src/*.plist
+	@rm -rf -- $(BLDRT) cov-int $(PROGNM).tgz ./src/*.plist
 
 $(BLDDIR):
 	@$(MKDIR) ./$(BLDDIR)
@@ -27,11 +32,14 @@ debug: bin
 	@gdb --tui $(RUNCMD)
 
 doc: $(BLDDIR)
-	@(if [ -d doc ]; then (cd doc; \
-		sphinx-build -b man -Dversion=$(VER) \
-			-d doctree -E . ../$(BLDDIR) $(PROGNM).rst; \
-		rm -r -- doctree; \
-	); else true; fi)
+	@(if [ -d doc ]; then \
+		for i in $(wildcard doc/*.scd); do \
+			fname="$${i:4:-4}"; \
+			section="$${fname: -1}"; \
+			name="$${fname:0:-2}"; \
+			scdoc < doc/"$$name-$$section.scd" > $(BLDDIR)/"$$name.$$section"; \
+		done; \
+	else true; fi)
 
 cov-build: $(BLDDIR)
 	@cov-build --dir cov-int ./make.sh
@@ -49,10 +57,19 @@ scan-build:
 verify:
 	@frama-c $(FMFLAGS) src/*.c
 
+watch:
+	@find $(WATCHDIRS) | entr -r make $(WATCHRULE)
+
 install:
 	@install -Dm755 $(BLDDIR)/$(PROGNM) $(BINDIR)/$(PROGNM)
-	@install -Dm755 $(BLDDIR)/$(PROGNM).1 $(DOCDIR)/man1/$(PROGNM).1
+	@(for i in $(shell basename $(wildcard $(BLDDIR)/*.[0-9])); do \
+		section="$${i: -1}"; \
+		install -Dm755 $(BLDDIR)/"$$i" $(DOCDIR)/man"$$section"/"$$i"; \
+	done)
 
-uninstall:
+uninstall: doc
 	@rm -f -- $(BINDIR)/$(PROGNM)
-	@rm -f -- $(DOCDIR)/$(PROGNM).1
+	@(for i in $(shell basename $(wildcard $(BLDDIR)/*.[0-9])); do \
+		section="$${i: -1}"; \
+		rm -f -- $(DOCDIR)/man"$$section"/"$$i"; \
+	done)
