@@ -14,7 +14,6 @@ main (signed argc, char * argv[]) {
     cells = (size_t )(ROWS * COLUMNS);
 
     uint8_t help = 0;
-    continuous = argc <= 1;
 
     bitbuffer(uint8_t, back, cells);
     bitbuffer(uint8_t, forth, cells);
@@ -32,13 +31,11 @@ main (signed argc, char * argv[]) {
         switch ( c ) {
             case 'e':
                 rate = 0;
-                continuous = FALSE;
                 break;
 
             case 'r':
                 sscanf(optarg, "%" SCNu8, &rate);
                 rate %= 101;
-                continuous = TRUE;
                 break;
 
             case 'p':
@@ -50,6 +47,8 @@ main (signed argc, char * argv[]) {
                 goto cleanup;
         }
     }
+
+    continuous = !!rate;
 
     struct timespec t = { .tv_nsec = pause * 1000000 };
     setup:
@@ -76,11 +75,13 @@ main (signed argc, char * argv[]) {
         print_board(board);
         attron(A_REVERSE);
         mvprintw(ROWS, 0,
+            "board size: %d x %d (%d) | "
             "generation %zu | "
             "evolving every %ld ms | "
             "random density: %" PRIu8 "/100"
             "%*c",
-            gen, t.tv_nsec / 1000000, rate, COLUMNS, '\n'
+            COLUMNS, ROWS, COLUMNS * ROWS, gen, t.tv_nsec / 1000000, rate,
+            COLUMNS, '\n'
         );
         attroff(A_REVERSE);
 
@@ -104,7 +105,7 @@ main (signed argc, char * argv[]) {
 
             case KEY_NPAGE:
                 rate -= 5;
-                if ( rate > 100 ) { rate = 100; }
+                if ( rate > 100 ) { rate = 0; }
                 continue;
 
             case KEY_PPAGE:

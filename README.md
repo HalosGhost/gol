@@ -6,8 +6,8 @@ This is a for-fun implementation of the game of life using ncurses.
 
 ## Features
 
-* Runs at full terminal size
-* Randomly seeds the universe with life
+* Runs at full terminal size (behaves reasonably well up to at least 1.5m cells on recent-ish hardware)
+* Can randomly seed the universe with life (with a configurable rate!)
 * Restarts the simulation with a new random board on `SIGHUP`
 * Cleanly exits on `SIGINT` or `q`
 * Allows modulation of the pause between ticks
