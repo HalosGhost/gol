@@ -11,9 +11,13 @@
 #include <getopt.h>
 
 #include "bitagg.h"
+#include "rle.h"
 
 void
 evolve (uint8_t *, uint8_t *);
+
+void
+graft (uint8_t *, size_t, size_t, uint8_t *, size_t, size_t);
 
 void
 print_board (uint8_t *);
@@ -33,7 +37,8 @@ static volatile sig_atomic_t caught_signum;
     X(random, 1) \
     X(empty,  0) \
     X(pause,  1) \
-    X(help,   0)
+    X(help,   0) \
+    X(seed,   1)
 
 #define X(longopt, arg) { #longopt, arg, 0, (#longopt)[0] },
 static struct option os[] = {

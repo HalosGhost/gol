@@ -18,15 +18,18 @@ main (signed argc, char * argv[]) {
     bitbuffer(uint8_t, back, cells);
     bitbuffer(uint8_t, forth, cells);
 
+    size_t seed_rows, seed_columns;
+    decl_bitbuffer(uint8_t, seed);
+
     if ( !back || !forth ) { goto cleanup; }
 
     srand((unsigned )time(NULL));
 
     uint8_t rate = 0;
     uint8_t pause = 50;
-    for ( signed oi = 0, c = getopt_long(argc, argv, "r:p:eh", os, &oi);
+    for ( signed oi = 0, c = getopt_long(argc, argv, "r:p:ehs:", os, &oi);
          c != -1;
-                         c = getopt_long(argc, argv, "r:p:eh", os, &oi)) {
+                         c = getopt_long(argc, argv, "r:p:ehs:", os, &oi)) {
 
         switch ( c ) {
             case 'e':
@@ -45,6 +48,13 @@ main (signed argc, char * argv[]) {
             case 'h':
                 help = 1;
                 goto cleanup;
+
+            case 's': {
+                FILE * f = fopen(optarg, "r");
+                if ( !f ) { goto cleanup; }
+                get_rle(f, &seed, &seed_rows, &seed_columns);
+                fclose(f);
+            }
         }
     }
 
@@ -54,7 +64,10 @@ main (signed argc, char * argv[]) {
     setup:
         run_state = 0;
 
-    for ( size_t i = 0; i < cells; ++ i ) {
+    if ( seed ) {
+        memset(back, 0, members_needed(uint8_t, cells));
+        graft(seed, seed_rows, seed_columns, back, ROWS, COLUMNS);
+    } else for ( size_t i = 0; i < cells; ++ i ) {
         assignbit(back, i, rand() % 100 < rate);
     }
 
@@ -174,6 +187,21 @@ evolve (uint8_t * current, uint8_t * next) {
         if ( x+1 < COLUMNS && y+1 < ROWS ) { count += getbit(current, i + COLUMNS + 1); }
 
         assignbit(next, i, count == 3 || (count == 2 && getbit(current, i)));
+    }
+}
+
+void
+graft (uint8_t * src, size_t srow, size_t scol, uint8_t * tgt, size_t trow, size_t tcol) {
+
+    size_t scells = srow * scol;
+    size_t offset = scells / 4;
+    size_t center = (trow * tcol / 2) - (tcol / 2);
+    size_t adjustment = center - (tcol * offset + offset);
+    for ( size_t i = 0; i < scells; ++ i ) {
+        assignbit(tgt, adjustment + i, getbit(src, i));
+        if ( !((i + 1) % scol) ) {
+            adjustment += tcol - scol;
+        }
     }
 }
 
